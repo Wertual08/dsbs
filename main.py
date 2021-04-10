@@ -16,6 +16,7 @@ def ShowHelp():
     print("    -i <path>       (optional) specify root directory.")
     print("    -m <comment>    (optional) specify comment.")
     print("log                 display indexation history.")
+    print("    -i <path>       (optional) specify root directory.")
     print("status              display file statuses.")
     print("    -i <path>       (optional) specify root directory.")
     print("    -w <width>      (optional) set entry column width.")
@@ -26,6 +27,7 @@ def ShowHelp():
     print("    -s              set source directory.")
     print("version             display the version.")
     print("clean <paths...>    clean indexations.")
+    print("-silent             disable progressbar.")
 
 def ParseArgs(argv):
     args = {}
@@ -48,16 +50,20 @@ def Index(args):
     directory = args["-i"] if "-i" in args.keys() else "."
     user = getpass.getuser()
     message = args["-m"] if "-m" in args.keys() else None
+    silent = "-silent" in args.keys()
 
-    progressbar = ProgressBar(PROGRESS_LENGTH, "", True)
-    progressbar.Start(f"Indexing \"{directory}\": ")
+    if not silent:
+        progressbar = ProgressBar(PROGRESS_LENGTH, "", True)
+        progressbar.Start(f"Indexing \"{directory}\": ")
 
     worker = Worker(directory)
-    worker.ReportProgress = progressbar.ReportProgress
+    if not silent:
+        worker.ReportProgress = progressbar.ReportProgress
     worker.Index(user, message)
     worker.Dispose()
 
-    progressbar.Finish()
+    if not silent:
+        progressbar.Finish()
 
 def Log(args):
     directory = args["-i"] if "-i" in args.keys() else "."
@@ -98,6 +104,7 @@ def Status(args):
     worker.Dispose()
 
 def Merge(args):
+    silent = "-silent" in args.keys()
     workers = []
     ind = 0
     while args.get(ind) != None:
@@ -108,33 +115,40 @@ def Merge(args):
 
     if not "-f" in args.keys():
         for worker in workers:
-            progressbar = ProgressBar(PROGRESS_LENGTH, "", True)
-            progressbar.Start(f"Indexing \"{worker.directory_path}\": ")
-            worker.ReportProgress = progressbar.ReportProgress
+            if not silent:
+                progressbar = ProgressBar(PROGRESS_LENGTH, "", True)
+                progressbar.Start(f"Indexing \"{worker.directory_path}\": ")
+                worker.ReportProgress = progressbar.ReportProgress
             worker.Index(user, "Merge indexation.")
-            progressbar.Finish()
+            if not silent:
+                progressbar.Finish()
             
 
     origin = workers.pop(0)
     for worker in workers:
-        progressbar = ProgressBar(PROGRESS_LENGTH, "", True)
-        progressbar.Start(f"Merging into \"{origin.directory_path}\": ")
-        origin.ReportProgress = progressbar.ReportProgress
+        if not silent:
+            progressbar = ProgressBar(PROGRESS_LENGTH, "", True)
+            progressbar.Start(f"Merging into \"{origin.directory_path}\": ")
+            origin.ReportProgress = progressbar.ReportProgress
         origin.Merge(worker)
-        progressbar.Finish()
+        if not silent:
+            progressbar.Finish()
 
     for worker in workers:
-        progressbar = ProgressBar(PROGRESS_LENGTH, "", True)
-        progressbar.Start(f"Merging into \"{worker.directory_path}\": ")
-        worker.ReportProgress = progressbar.ReportProgress
+        if not silent:
+            progressbar = ProgressBar(PROGRESS_LENGTH, "", True)
+            progressbar.Start(f"Merging into \"{worker.directory_path}\": ")
+            worker.ReportProgress = progressbar.ReportProgress
         worker.Merge(origin)
-        progressbar.Finish()
+        if not silent:
+            progressbar.Finish()
 
     origin.Dispose()
     for worker in workers:
         worker.Dispose()
 
 def Push(args):
+    silent = "-silent" in args.keys()
     directories = []
     ind = 0
     while args.get(ind) != None:
@@ -145,11 +159,13 @@ def Push(args):
     if source:
         pusher = Pusher(source)
         for d in directories:
-            progressbar = ProgressBar(PROGRESS_LENGTH, "", True)
-            progressbar.Start(f"Pushing into \"{d}\": ")
-            pusher.ReportProgress = progressbar.ReportProgress
+            if not silent:
+                progressbar = ProgressBar(PROGRESS_LENGTH, "", True)
+                progressbar.Start(f"Pushing into \"{d}\": ")
+                pusher.ReportProgress = progressbar.ReportProgress
             pusher.Push(d)
-            progressbar.Finish()
+            if not silent:
+                progressbar.Finish()
 
     else:
         print("Push error: Source directory was not specified.")

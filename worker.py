@@ -32,7 +32,7 @@ class Worker:
 
     def __init__(self, path : str):
         Path(path).mkdir(parents=True, exist_ok=True)
-        self.ReportProgress = callable(None)
+        self.ReportProgress = lambda *args: None
         self.ignore = ["dsbs_data.db", "dsbs_data.db-journal"]
         self.directory_path = path
         self.database_path = os.path.join(path, "dsbs_data.db")

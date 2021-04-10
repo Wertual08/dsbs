@@ -33,3 +33,5 @@ elif action == "clean":
 else:
     print(f"Error: Invalid action \"{action}\".\nUse help to list available actions.")
     exit(-1)
+
+exit(0)
