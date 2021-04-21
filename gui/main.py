@@ -5,6 +5,15 @@ import tkinter.filedialog as tkf
 import comment_box as cb
 import subprocess
 import sys
+import os
+import re
+import matplotlib
+from matplotlib.backends.backend_tkagg import (
+    FigureCanvasTkAgg, 
+    NavigationToolbar2Tk
+)
+from matplotlib.figure import Figure
+from datetime import datetime
 
 
 
@@ -26,8 +35,10 @@ class Application(tk.Frame):
 
 
 	def spawn_process(self, args):
+		self.clear_output()
+		path = os.path.realpath(__file__) + '/../../dsbs.py'
 		process = subprocess.Popen(
-			[sys.executable, '../dsbs.py'] + args + ['-silent'], 
+			[sys.executable, path] + args + ['-silent'], 
 			stdout=subprocess.PIPE,
 			stderr=subprocess.PIPE
 		)
@@ -134,6 +145,12 @@ class Application(tk.Frame):
 		self.clean_button["command"] = self.clean_button_click
 		self.clean_button.pack(side=tk.LEFT, padx=5, pady=5)
 
+		self.graph_button = tk.Button(self.control_frame)
+		self.graph_button["text"] = "Graph"
+		self.graph_button["width"] = 8
+		self.graph_button["command"] = self.graph_button_click
+		self.graph_button.pack(side=tk.LEFT, padx=5, pady=5)
+
 
 	def browse_button_click(self):
 		directory = tkf.askdirectory()
@@ -176,6 +193,25 @@ class Application(tk.Frame):
 
 	def clean_button_click(self):
 		self.spawn_process(['clean'] + self.get_input())
+
+	def graph_button_click(self):
+		out = self.output_text.get("1.0", tk.END)
+		stamps = [
+			datetime.strptime(x, '%Y-%m-%d %H:%M:%S') 
+			for x in re.findall(r'\[(.+)\]', out)
+		]
+		#print(stamps)
+
+		frame = tk.Frame(tk.Toplevel(self))
+		frame.master.title("Indexation history")
+		frame.pack(fill=tk.BOTH, expand=True)
+
+		fig = Figure(figsize=(5,4), dpi=100)
+		ax = fig.add_subplot(1, 1, 1)
+		ax.hist(stamps, 20)
+		canvas = FigureCanvasTkAgg(fig, master=frame)
+		canvas.get_tk_widget().pack(fill=tk.BOTH, side=tk.TOP, expand=True)
+
 
 
 
