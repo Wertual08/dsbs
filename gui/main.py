@@ -2,7 +2,7 @@ import tkinter as tk
 import tkinter.scrolledtext as tks
 import tkinter.ttk as ttk
 import tkinter.filedialog as tkf
-import comment_box as cb
+import gui.comment_box as cb
 import subprocess
 import sys
 import os
@@ -200,8 +200,7 @@ class Application(tk.Frame):
 			datetime.strptime(x, '%Y-%m-%d %H:%M:%S') 
 			for x in re.findall(r'\[(.+)\]', out)
 		]
-		#print(stamps)
-
+		
 		frame = tk.Frame(tk.Toplevel(self))
 		frame.master.title("Indexation history")
 		frame.pack(fill=tk.BOTH, expand=True)
